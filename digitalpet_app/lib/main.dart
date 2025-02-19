@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -16,8 +17,10 @@ class _DigitalPetAppState extends State<DigitalPetApp> {
   int happinessLevel = 50;
   int hungerLevel = 50;
   bool isNameSet = false; // Track if the name has been set
-
   TextEditingController _nameController = TextEditingController();
+
+  // Timer for automatic hunger increase
+  Timer? _hungerTimer;
 
   // Function to increase happiness and update hunger when playing with the pet
   void _playWithPet() {
@@ -83,8 +86,29 @@ class _DigitalPetAppState extends State<DigitalPetApp> {
     });
   }
 
+  // Start the timer to increase hunger every 30 seconds
+  void _startHungerTimer() {
+    _hungerTimer = Timer.periodic(Duration(seconds: 30), (timer) {
+      setState(() {
+        _updateHunger();
+      });
+    });
+  }
+
+  // Cancel the timer when the widget is disposed to avoid memory leaks
+  @override
+  void dispose() {
+    _hungerTimer?.cancel();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
+    // Start the hunger timer once the pet name is confirmed
+    if (isNameSet && _hungerTimer == null) {
+      _startHungerTimer();
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: Text('Digital Pet'),
