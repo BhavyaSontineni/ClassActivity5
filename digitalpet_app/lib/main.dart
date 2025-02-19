@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-
+//Bhavya Sri Sai-002893685
+//Madhuri Tumula-002892521
 void main() {
   runApp(MaterialApp(
     home: DigitalPetApp(),
@@ -16,16 +17,19 @@ class _DigitalPetAppState extends State<DigitalPetApp> {
   String petName = "Billa";
   int happinessLevel = 50;
   int hungerLevel = 50;
-  bool isNameSet = false; // Track if the name has been set
+  int energyLevel = 100;
+  bool isNameSet = false;
   TextEditingController _nameController = TextEditingController();
-
-  // Timer for automatic hunger increase
   Timer? _hungerTimer;
+  Timer? _winTimer;
+  bool gameOver = false;
+  bool gameWon = false;
 
   // Function to increase happiness and update hunger when playing with the pet
   void _playWithPet() {
     setState(() {
       happinessLevel = (happinessLevel + 10).clamp(0, 100);
+      energyLevel = (energyLevel - 10).clamp(0, 100); // Play consumes energy
       _updateHunger();
     });
   }
@@ -35,6 +39,7 @@ class _DigitalPetAppState extends State<DigitalPetApp> {
     setState(() {
       hungerLevel = (hungerLevel - 10).clamp(0, 100);
       _updateHappiness();
+      energyLevel = (energyLevel + 5).clamp(0, 100); // Feeding increases energy
     });
   }
 
@@ -95,11 +100,50 @@ class _DigitalPetAppState extends State<DigitalPetApp> {
     });
   }
 
-  // Cancel the timer when the widget is disposed to avoid memory leaks
+  // Check for win or loss conditions
+  void _checkGameStatus() {
+    if (happinessLevel > 80) {
+      _startWinTimer();
+    }
+    if (hungerLevel == 100 && happinessLevel <= 10) {
+      setState(() {
+        gameOver = true;
+      });
+    }
+  }
+
+  // Start the timer for win condition
+  void _startWinTimer() {
+    if (_winTimer == null) {
+      _winTimer = Timer.periodic(Duration(seconds: 180), (timer) {
+        setState(() {
+          gameWon = true;
+        });
+      });
+    }
+  }
+
+  // Cancel the timers when the widget is disposed
   @override
   void dispose() {
     _hungerTimer?.cancel();
+    _winTimer?.cancel();
     super.dispose();
+  }
+
+  // Activity selection dropdown
+  String selectedActivity = "Play";
+
+  // Handle activity selection
+  void _selectActivity(String activity) {
+    setState(() {
+      selectedActivity = activity;
+    });
+    if (selectedActivity == "Play") {
+      _playWithPet();
+    } else if (selectedActivity == "Feed") {
+      _feedPet();
+    }
   }
 
   @override
@@ -107,6 +151,10 @@ class _DigitalPetAppState extends State<DigitalPetApp> {
     // Start the hunger timer once the pet name is confirmed
     if (isNameSet && _hungerTimer == null) {
       _startHungerTimer();
+    }
+
+    if (!gameOver && !gameWon) {
+      _checkGameStatus();
     }
 
     return Scaffold(
@@ -158,11 +206,41 @@ class _DigitalPetAppState extends State<DigitalPetApp> {
               style: TextStyle(fontSize: 20.0),
             ),
             SizedBox(height: 16.0),
+            Text(
+              'Energy Level: $energyLevel',
+              style: TextStyle(fontSize: 20.0),
+            ),
 
             // Display the pet's mood
             Text(
               'Mood: ${_getPetMood()}',
               style: TextStyle(fontSize: 20.0),
+            ),
+
+            SizedBox(height: 16.0),
+            LinearProgressIndicator(
+              value: energyLevel / 100,
+              color: Colors.blue,
+              backgroundColor: Colors.grey,
+            ),
+
+            SizedBox(height: 16.0),
+
+            // Activity selection dropdown
+            DropdownButton<String>(
+              value: selectedActivity,
+              items: <String>['Play', 'Feed']
+                  .map<DropdownMenuItem<String>>((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(value),
+                );
+              }).toList(),
+              onChanged: (String? newValue) {
+                if (newValue != null) {
+                  _selectActivity(newValue);
+                }
+              },
             ),
 
             SizedBox(height: 32.0),
@@ -175,6 +253,18 @@ class _DigitalPetAppState extends State<DigitalPetApp> {
               onPressed: _feedPet,
               child: Text('Feed Your Pet'),
             ),
+
+            // Game over or win display
+            if (gameOver)
+              Text(
+                'Game Over! Your pet is hungry and unhappy!',
+                style: TextStyle(fontSize: 20.0, color: Colors.red),
+              ),
+            if (gameWon)
+              Text(
+                'You Win! Your pet is happy for 3 minutes!',
+                style: TextStyle(fontSize: 20.0, color: Colors.green),
+              ),
           ],
         ),
       ),
