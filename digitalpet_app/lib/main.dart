@@ -61,6 +61,17 @@ class _DigitalPetAppState extends State<DigitalPetApp> {
     }
   }
 
+  // Get the mood text and emoji based on happiness level
+  String _getPetMood() {
+    if (happinessLevel > 70) {
+      return "Happy 😊";  // Happy pet
+    } else if (happinessLevel >= 30) {
+      return "Neutral 😐"; // Neutral pet
+    } else {
+      return "Unhappy 😞"; // Unhappy pet
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -107,6 +118,14 @@ class _DigitalPetAppState extends State<DigitalPetApp> {
               'Hunger Level: $hungerLevel',
               style: TextStyle(fontSize: 20.0),
             ),
+            SizedBox(height: 16.0),
+
+            // Display the pet's mood
+            Text(
+              'Mood: ${_getPetMood()}',
+              style: TextStyle(fontSize: 20.0),
+            ),
+
             SizedBox(height: 32.0),
             ElevatedButton(
               onPressed: _playWithPet,
