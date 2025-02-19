@@ -15,6 +15,9 @@ class _DigitalPetAppState extends State<DigitalPetApp> {
   String petName = "Billa";
   int happinessLevel = 50;
   int hungerLevel = 50;
+  bool isNameSet = false; // Track if the name has been set
+
+  TextEditingController _nameController = TextEditingController();
 
   // Function to increase happiness and update hunger when playing with the pet
   void _playWithPet() {
@@ -72,6 +75,14 @@ class _DigitalPetAppState extends State<DigitalPetApp> {
     }
   }
 
+  // Handle the name confirmation
+  void _confirmName() {
+    setState(() {
+      petName = _nameController.text.isNotEmpty ? _nameController.text : petName;
+      isNameSet = true; // Set the name as confirmed
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -82,19 +93,28 @@ class _DigitalPetAppState extends State<DigitalPetApp> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            // Pet Name input
-            TextField(
-              onChanged: (newName) {
-                setState(() {
-                  petName = newName;
-                });
-              },
-              decoration: InputDecoration(
-                labelText: 'Enter Pet Name',
-                border: OutlineInputBorder(),
+            // If the name is not set, show the name input field
+            if (!isNameSet) ...[
+              TextField(
+                controller: _nameController,
+                decoration: InputDecoration(
+                  labelText: 'Enter Pet Name',
+                  border: OutlineInputBorder(),
+                ),
+                style: TextStyle(fontSize: 20.0),
               ),
-              style: TextStyle(fontSize: 20.0),
-            ),
+              SizedBox(height: 16.0),
+              ElevatedButton(
+                onPressed: _confirmName,
+                child: Text('Confirm Name'),
+              ),
+            ] else ...[
+              // Once name is confirmed, show the pet information
+              Text(
+                'Name: $petName',
+                style: TextStyle(fontSize: 20.0),
+              ),
+            ],
             SizedBox(height: 16.0),
 
             // Display Pet Image with dynamic color filter based on happiness
@@ -103,11 +123,6 @@ class _DigitalPetAppState extends State<DigitalPetApp> {
               child: Image.asset('assets/pet_image.png', width: 200, height: 200),
             ),
 
-            SizedBox(height: 16.0),
-            Text(
-              'Name: $petName',
-              style: TextStyle(fontSize: 20.0),
-            ),
             SizedBox(height: 16.0),
             Text(
               'Happiness Level: $happinessLevel',
